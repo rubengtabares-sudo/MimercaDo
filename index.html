@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MimercaDo — Contabilidad</title>
+<meta name="theme-color" content="#16a34a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MimercaDo">
+<style>
+  :root{
+    --primary:#16a34a;--primary-dark:#15803d;--primary-light:#dcfce7;
+    --bg:#f1f5f9;--card:#fff;--text:#0f172a;--muted:#64748b;
+    --border:#e2e8f0;--danger:#dc2626;--danger-light:#fee2e2;
+    --warn:#f59e0b;--warn-light:#fef3c7;--info:#2563eb;--info-light:#dbeafe;
+    --radius:12px;--shadow:0 1px 3px rgba(15,23,42,.08),0 4px 16px rgba(15,23,42,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom)}
+  .topbar{background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;padding:14px 20px;padding-top:calc(14px + env(safe-area-inset-top));display:flex;flex-wrap:wrap;align-items:center;gap:16px;box-shadow:var(--shadow);position:sticky;top:0;z-index:50}
+  .brand{font-size:23px;font-weight:800;display:flex;align-items:center;gap:8px;white-space:nowrap;letter-spacing:.3px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+  .tab{background:rgba(255,255,255,.15);color:#fff;border:0;padding:10px 16px;border-radius:999px;cursor:pointer;font-size:15px;font-weight:600;transition:.15s;font-family:inherit}
+  .tab:hover{background:rgba(255,255,255,.28)}
+  .tab.active{background:#fff;color:var(--primary-dark)}
+  main{padding:20px;max-width:1400px;margin:0 auto}
+  .panel{display:none;animation:fade .18s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  h2{font-size:23px;margin-bottom:14px}
+  h3{font-size:18px;margin-bottom:10px}
+  .muted{color:var(--muted);font-size:14.5px}
+  .empty{color:var(--muted);font-size:15.5px;padding:22px;text-align:center}
+  input,select,textarea{font-family:inherit;font-size:16px;padding:11px 13px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--text);width:100%;transition:.15s}
+  input:focus,select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:14px;font-weight:600;color:var(--muted);margin-bottom:5px}
+  .search{font-size:16px;padding:13px 15px;margin-bottom:12px}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .btn{font-family:inherit;font-size:16px;font-weight:600;padding:12px 20px;border-radius:9px;border:1px solid transparent;cursor:pointer;transition:.15s;white-space:nowrap}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-primary:hover{background:var(--primary-dark)}
+  .btn-ghost{background:#fff;border-color:var(--border);color:var(--text)}
+  .btn-ghost:hover{background:#f8fafc}
+  .btn-danger{background:var(--danger);color:#fff}
+  .btn-danger:hover{background:#b91c1c}
+  .btn-info{background:var(--info);color:#fff}
+  .btn-info:hover{background:#1d4ed8}
+  .btn-block{width:100%;padding:15px;font-size:16.5px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .icon-btn{background:transparent;border:0;cursor:pointer;font-size:18px;padding:8px 11px;border-radius:8px;color:var(--muted);transition:.15s;line-height:1}
+  .icon-btn:hover{background:var(--danger-light);color:var(--danger)}
+  .pos-layout{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+  .pos-left,.pos-right,.card{background:var(--card);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .pos-right{position:sticky;top:86px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .chip{background:#f1f5f9;border:1px solid var(--border);padding:8px 15px;border-radius:999px;font-size:14.5px;cursor:pointer;font-family:inherit;color:var(--muted);transition:.15s}
+  .chip:hover{background:#e2e8f0}
+  .chip.active{background:var(--primary);border-color:var(--primary);color:#fff}
+  .prod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+  .prod-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:5px;cursor:pointer;text-align:left;font-family:inherit;transition:.15s}
+  .prod-card:hover:not(:disabled){border-color:var(--primary);box-shadow:0 3px 12px rgba(22,163,74,.16);transform:translateY(-1px)}
+  .prod-card:disabled{opacity:.45;cursor:not-allowed}
+  .prod-nombre{font-weight:600;font-size:15.5px;line-height:1.3}
+  .prod-precio{color:var(--primary-dark);font-weight:700;font-size:19px}
+  .prod-precio small{font-weight:400;font-size:12.5px;color:var(--muted);display:block}
+  .prod-stock{font-size:13px;color:var(--muted)}
+  .cart-items{max-height:340px;overflow-y:auto;margin-bottom:12px;border-bottom:1px solid var(--border)}
+  .cart-item{display:flex;flex-direction:column;gap:6px;padding:11px 0;border-bottom:1px dashed var(--border)}
+  .cart-item:last-child{border-bottom:0}
+  .ci-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .ci-info{display:flex;flex-direction:column;min-width:0;flex:1}
+  .ci-info strong{font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ci-info span{font-size:13px}
+  .ci-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .qty{width:90px;padding:7px 9px;font-size:15.5px;text-align:center}
+  .quick-btns{display:flex;gap:5px;flex-wrap:wrap}
+  .quick-btn{background:#f1f5f9;border:1px solid var(--border);border-radius:7px;padding:6px 11px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--muted);font-weight:600}
+  .quick-btn:hover{background:var(--primary-light);color:var(--primary-dark);border-color:var(--primary)}
+  .quick-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .ci-sub{font-size:15.5px;font-weight:700;min-width:85px;text-align:right;color:var(--primary-dark)}
+  .cart-total{display:flex;justify-content:space-between;align-items:center;padding:11px 0;font-size:16.5px;font-weight:600}
+  .cart-total strong{font-size:26px;color:var(--primary-dark)}
+  .cart-total small{display:block;font-size:13px;color:var(--muted);font-weight:400}
+  .cart-total.small{padding:7px 0;font-size:15px}
+  .cart-total.small strong{font-size:18px;color:var(--info)}
+  table{width:100%;border-collapse:collapse;font-size:15.5px}
+  th{text-align:left;font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:10px 11px;border-bottom:2px solid var(--border);font-weight:700}
+  td{padding:11px 11px;border-bottom:1px solid var(--border);vertical-align:middle}
+  tbody tr:hover{background:#f8fafc}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .table-scroll{overflow-x:auto}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:18px}
+  .stat{background:var(--card);border-radius:var(--radius);padding:17px 19px;box-shadow:var(--shadow);border-left:4px solid var(--muted)}
+  .stat.green{border-left-color:var(--primary)}
+  .stat.blue{border-left-color:var(--info)}
+  .stat.red{border-left-color:var(--danger)}
+  .stat.amber{border-left-color:var(--warn)}
+  .stat-label{font-size:13px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}
+  .stat-value{font-size:27px;font-weight:700;margin-top:5px;font-variant-numeric:tabular-nums}
+  .stat-sub{font-size:13px;color:var(--muted);margin-top:3px}
+  .badge{display:inline-block;padding:3px 11px;border-radius:999px;font-size:13px;font-weight:700}
+  .badge.ok{background:var(--primary-light);color:var(--primary-dark)}
+  .badge.warn{background:var(--warn-light);color:#92400e}
+  .badge.bad{background:var(--danger-light);color:var(--danger)}
+  .badge.info{background:var(--info-light);color:#1e40af}
+  .chart{display:flex;align-items:flex-end;gap:10px;height:200px;padding:16px 6px 0}
+  .bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:5px}
+  .bar{width:100%;max-width:56px;background:linear-gradient(180deg,#4ade80,#16a34a);border-radius:6px 6px 0 0}
+  .bar-val{font-size:12px;color:var(--muted);font-weight:600}
+  .bar-lbl{font-size:12.5px;color:var(--muted);text-transform:capitalize}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+  .modal-overlay.open{display:flex}
+  .modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .modal.wide{max-width:760px}
+  .modal h3{font-size:20px;margin-bottom:18px}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,120px);background:#0f172a;color:#fff;padding:14px 26px;border-radius:10px;font-size:15.5px;font-weight:600;z-index:300;opacity:0;transition:.28s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw;text-align:center}
+  .toast.show{opacity:1;transform:translate(-50%,0)}
+  .toast.ok{background:var(--primary-dark)}
+  .toast.warn{background:#b45309}
+  .flex-between{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .gap{display:flex;gap:10px;flex-wrap:wrap}
+  .mb{margin-bottom:16px}
+  .mt{margin-top:16px}
+  .hidden{display:none}
+  .arqueo-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+  .arqueo-head{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;border-bottom:2px solid var(--border);padding-bottom:8px}
+  .dif-pos{color:var(--primary-dark);font-weight:700}
+  .dif-neg{color:var(--danger);font-weight:700}
+  .dif-zero{color:var(--muted)}
+  .highlight-box{background:var(--primary-light);border-left:4px solid var(--primary);padding:14px 16px;border-radius:8px;margin-top:14px}
+  .highlight-box h4{font-size:16px;margin-bottom:8px;color:var(--primary-dark)}
+  .highlight-box p{font-size:15px;margin:3px 0}
+  .sync-box{background:#f8fafc;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+  .sync-box.locked{background:var(--warn-light);border-color:var(--warn)}
+  .sync-code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:14px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:10px 12px;word-break:break-all;display:block;margin:8px 0;user-select:all}
+  .sync-status{display:inline-block;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:700}
+  .sync-status.on{background:var(--primary-light);color:var(--primary-dark)}
+  .sync-status.off{background:#e2e8f0;color:var(--muted)}
+  .sync-status.warn{background:var(--warn-light);color:#92400e}
+  @media (max-width:960px){
+    .pos-layout{grid-template-columns:1fr}
+    .pos-right{position:static}
+    .row2,.row3{grid-template-columns:1fr}
+    .arqueo-row{grid-template-columns:1fr 1fr;gap:6px}
+    .arqueo-head{display:none}
+  }
+  @media (max-width:600px){
+    main{padding:12px}
+    .tabs{width:100%;margin-left:0}
+    .tab{flex:1;padding:10px 6px;font-size:13.5px;text-align:center}
+    .topbar{padding:12px}
+    .brand{font-size:19px}
+    .prod-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}
+    .stat-value{font-size:24px}
+    h2{font-size:21px}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">🛒 MimercaDo</div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="pos">Vender</button>
+    <button class="tab" data-tab="inventario">Inventario</button>
+    <button class="tab" data-tab="arqueo">Arqueo</button>
+    <button class="tab" data-tab="gastos">Gastos</button>
+    <button class="tab" data-tab="reportes">Reportes</button>
+    <button class="tab" data-tab="ajustes">Ajustes</button>
+  </nav>
+</header>
+
+<main>
+
+<section id="tab-pos" class="panel active">
+  <div class="pos-layout">
+    <div class="pos-left">
+      <input id="posBusqueda" class="search" placeholder="🔍 Buscar producto...">
+      <div id="posCategorias" class="chips"></div>
+      <div id="posGrid" class="prod-grid"></div>
+    </div>
+    <aside class="pos-right">
+      <div class="flex-between" style="margin-bottom:8px">
+        <h3 style="margin:0">🧾 Venta actual</h3>
+        <button class="icon-btn" id="btnVaciar" title="Vaciar carrito">🗑️</button>
+      </div>
+      <div id="carritoItems" class="cart-items"></div>
+      <div class="cart-total">
+        <span>Total</span>
+        <strong id="carritoTotal">$0.00</strong>
+      </div>
+      <div class="field">
+        <label>Método de pago</label>
+        <select id="metodoPago">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Tarjeta MLC">Tarjeta MLC</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Paga con</label>
+        <input id="inputPago" type="number" step="0.01" min="0" placeholder="0.00">
+      </div>
+      <div class="cart-total small">
+        <span>Cambio</span>
+        <strong id="carritoCambio">$0.00</strong>
+      </div>
+      <button id="btnCobrar" class="btn btn-primary btn-block">✓ Cobrar</button>
+    </aside>
+  </div>
+</section>
+
+<section id="tab-inventario" class="panel">
+  <div class="flex-between">
+    <h2 style="margin:0">📦 Inventario</h2>
+    <button class="btn btn-primary" id="btnNuevoProducto">+ Nuevo producto</button>
+  </div>
+  <input id="invBusqueda" class="search" placeholder="🔍 Buscar en inventario...">
+  <div id="invContenido"></div>
+  <div class="card mt" id="sugerenciasBox"></div>
+</section>
+
+<section id="tab-arqueo" class="panel">
+  <div class="flex-between">
+    <h2 style="margin:0">🧮 Arqueo y cierre del día</h2>
+    <div class="gap" style="align-items:center">
+      <label class="muted" style="font-size:14px">Fecha:</label>
+      <input id="arqFecha" type="date" style="width:auto">
+      <button class="btn btn-ghost" id="btnCargarArqueo">Cargar</button>
+    </div>
+  </div>
+  <div id="arqResumen"></div>
+  <div class="card mb">
+    <div class="flex-between">
+      <h3 style="margin:0">Conteo físico</h3>
+      <div class="gap">
+        <button class="btn btn-ghost" id="btnSoloDiferencias">Solo diferencias</button>
+        <button class="btn btn-ghost" id="btnRellenarSistema">Todo = sistema</button>
+      </div>
+    </div>
+    <p class="muted mb">Escribe la cantidad que contaste físicamente. La app calcula diferencias, mermas y ajusta el stock.</p>
+    <div id="arqContenido"></div>
+    <div class="mt" style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap">
+      <button class="btn btn-ghost" id="btnLimpiarArqueo">Limpiar</button>
+      <button class="btn btn-primary" id="btnGuardarArqueo">💾 Guardar arqueo y ajustar stock</button>
+    </div>
+  </div>
+  <div class="card" id="arqHistorialBox"></div>
+</section>
+
+<section id="tab-gastos" class="panel">
+  <h2>💸 Gastos y compras</h2>
+  <div class="card mb">
+    <h3>Registrar gasto</h3>
+    <div class="row3">
+      <div class="field"><label>Fecha</label><input id="gFecha" type="date"></div>
+      <div class="field"><label>Concepto</label><input id="gConcepto" placeholder="Ej. Compra de fruta"></div>
+      <div class="field"><label>Categoría</label>
+        <select id="gCategoria">
+          <option>Mercancía</option><option>Renta</option><option>Servicios (luz/agua)</option>
+          <option>Sueldos</option><option>Transporte</option><option>Empaque</option>
+          <option>Mantenimiento</option><option>Otros</option>
+        </select>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Monto ($)</label>
+        <input id="gMonto" type="number" step="0.01" min="0" placeholder="0.00"></div>
+      <div class="field" style="display:flex;align-items:flex-end">
+        <button class="btn btn-primary btn-block" id="btnAddGasto">+ Agregar gasto</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="flex-between">
+      <h3 style="margin:0">Historial</h3>
+      <input id="gFiltroMes" type="month" style="width:auto">
+    </div>
+    <div id="gastosContenido"></div>
+  </div>
+</section>
+
+<section id="tab-reportes" class="panel">
+  <h2>📊 Reportes</h2>
+  <div class="card mb">
+    <div class="row3">
+      <div class="field"><label>Desde</label><input id="rDesde" type="date"></div>
+      <div class="field"><label>Hasta</label><input id="rHasta" type="date"></div>
+      <div class="field" style="display:flex;align-items:flex-end;gap:8px">
+        <button class="btn btn-ghost" id="btnHoy">Hoy</button>
+        <button class="btn btn-ghost" id="btnSemana">7 días</button>
+        <button class="btn btn-ghost" id="btnMes">Este mes</button>
+      </div>
+    </div>
+  </div>
+  <div id="rResumen"></div>
+  <div class="card mb">
+    <h3>Ventas de los últimos 7 días</h3>
+    <div id="rChart"></div>
+  </div>
+  <div class="row2" style="align-items:start">
+    <div class="card"><h3>🏆 Productos más vendidos</h3><div id="rTop"></div></div>
+    <div class="card"><h3>💳 Ventas por método de pago</h3><div id="rMetodos"></div></div>
+  </div>
+  <div class="card mt">
+    <h3>Detalle de ventas (editable)</h3>
+    <div id="rVentas"></div>
+  </div>
+</section>
+
+<section id="tab-ajustes" class="panel">
+  <h2>⚙️ Ajustes y respaldo</h2>
+
+  <div class="card mb">
+    <h3>Datos del negocio</h3>
+    <div class="row2">
+      <div class="field"><label>Nombre del negocio</label><input id="ajNombre"></div>
+      <div class="field"><label>Símbolo de moneda</label><input id="ajMoneda" maxlength="4" placeholder="$"></div>
+    </div>
+    <button class="btn btn-primary" id="btnGuardarConfig">Guardar cambios</button>
+  </div>
+
+  <div class="card mb">
+    <h3>🔐 Sincronización por Internet</h3>
+    <p class="muted mb">Comparte los datos entre varios dispositivos con otros administradores. Todo se cifra con tu clave secreta antes de subirse.</p>
+    <div id="syncPanel"></div>
+  </div>
+
+  <div class="card mb">
+    <h3>Respaldo manual</h3>
+    <div class="gap">
+      <button class="btn btn-ghost" id="btnExportJSON">⬇️ Exportar respaldo (JSON)</button>
+      <label class="btn btn-ghost" style="display:inline-block;cursor:pointer">
+        ⬆️ Importar respaldo
+        <input type="file" id="fileImport" accept=".json" class="hidden">
+      </label>
+      <button class="btn btn-ghost" id="btnExportCSV">📄 Exportar ventas (CSV)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Zona de riesgo</h3>
+    <div class="gap">
+      <button class="btn btn-ghost" id="btnDemo">🎲 Cargar datos de ejemplo</button>
+      <button class="btn btn-danger" id="btnBorrar">🗑️ Borrar todos los datos</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <h3 id="modalTitle">Título</h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+      <button class="btn btn-primary" id="modalSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="catsList"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   ESTADO Y PERSISTENCIA
+   ========================================================= */
+const LS_KEY = 'mimercado_v1';
+const SESSION_PW = 'mimercado_pw_session';
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+let db = {
+  productos: [],
+  ventas: [],
+  gastos: [],
+  arqueos: [],
+  config: {
+    nombre:'MimercaDo',
+    moneda:'$',
+    adminHash: '',
+    sync: { enabled:false, blobId:'', autoSync:true, lastSync:'', remoteUpdated:'' }
+  }
+};
+
+let carrito = [];
+let filtroCat = 'todas';
+let filtroBusqueda = '';
+let filtroInv = '';
+let arqueoActual = null;
+let sessionPassword = '';
+let autoSyncTimer = null;
+let syncEnCurso = false;
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+
+function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function num(v){ const n = parseFloat(v); return isNaN(n) ? 0 : n; }
+function r2(n){ return Math.round(num(n)*100)/100; }
+function r3(n){ return Math.round(num(n)*1000)/1000; }
+function fmt(n){ return db.config.moneda + num(n).toFixed(2); }
+function fmtCant(n){ return String(Math.round(num(n)*1000)/1000); }
+function fechaKey(iso){ const d = new Date(iso); return new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
+function hoyKey(){ return fechaKey(new Date().toISOString()); }
+function fmtFecha(iso){ const d = new Date(iso); return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'}); }
+function esDecimal(u){ return u === 'lb' || u === 'litro'; }
+
+function guardar(){
+  try { localStorage.setItem(LS_KEY, JSON.stringify(db)); }
+  catch(e){ toast('No se pudo guardar (almacenamiento lleno)','warn'); }
+  programarAutoSync();
+}
+function cargar(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    db.productos = d.productos || [];
+    db.ventas    = d.ventas    || [];
+    db.gastos    = d.gastos    || [];
+    db.arqueos   = d.arqueos   || [];
+    db.config    = Object.assign(db.config, d.config || {});
+    db.config.sync = Object.assign({ enabled:false, blobId:'', autoSync:true, lastSync:'', remoteUpdated:'' }, d.config?.sync || {});
+  } catch(e){ console.error(e); }
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg, tipo){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (tipo || '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = 'toast'; }, 2800);
+}
+
+/* ---------- Modal ---------- */
+function abrirModal(wide){ $('#modalBox').classList.toggle('wide', !!wide); $('#modalOverlay').classList.add('open'); }
+function cerrarModal(){ $('#modalOverlay').classList.remove('open'); }
+$('#modalCancel').onclick = cerrarModal;
+$('#modalOverlay').addEventListener('click', e => { if(e.target.id === 'modalOverlay') cerrarModal(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') cerrarModal(); });
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+function switchTab(name){
+  $$('.tab').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  $$('.panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  if(name === 'pos')        renderPOS();
+  if(name === 'inventario') renderInventario();
+  if(name === 'arqueo')     renderArqueo();
+  if(name === 'gastos')     renderGastos();
+  if(name === 'reportes')   renderReportes();
+  if(name === 'ajustes')    renderAjustes();
+}
+
+/* =========================================================
+   PUNTO DE VENTA
+   ========================================================= */
+function renderPOS(){
+  const cats = ['todas', ...new Set(db.productos.map(p => p.categoria).filter(Boolean))];
+  const catBox = $('#posCategorias');
+  catBox.innerHTML = cats.map(c =>
+    `<button class="chip ${filtroCat === c ? 'active' : ''}" data-cat="${esc(c)}">${c === 'todas' ? 'Todas' : esc(c)}</button>`
+  ).join('');
+  catBox.querySelectorAll('.chip').forEach(b => {
+    b.onclick = () => { filtroCat = b.dataset.cat; renderPOS(); };
+  });
+
+  const q = filtroBusqueda.trim().toLowerCase();
+  const lista = db.productos.filter(p => {
+    const okCat = filtroCat === 'todas' || p.categoria === filtroCat;
+    const okQ = !q || p.nombre.toLowerCase().includes(q);
+    return okCat && okQ;
+  });
+
+  const grid = $('#posGrid');
+  if(!db.productos.length){
+    grid.innerHTML = '<p class="empty">No hay productos todavía.<br>Ve a <b>Inventario → Nuevo producto</b>.</p>';
+  } else if(!lista.length){
+    grid.innerHTML = '<p class="empty">Sin resultados.</p>';
+  } else {
+    grid.innerHTML = lista.map(p => `
+      <button class="prod-card" data-id="${p.id}" ${p.stock <= 0 ? 'disabled' : ''}>
+        <span class="prod-nombre">${esc(p.nombre)}</span>
+        <span class="prod-precio">${fmt(p.precio)}<small>por ${esc(p.unidad)}</small></span>
+        <span class="prod-stock">${p.stock <= 0 ? '⛔ Agotado' : 'Stock: ' + fmtCant(p.stock) + ' ' + esc(p.unidad)}</span>
+      </button>`).join('');
+    grid.querySelectorAll('.prod-card').forEach(b => {
+      b.onclick = () => agregarAlCarrito(b.dataset.id);
+    });
+  }
+  renderCarrito();
+}
+
+function agregarAlCarrito(id){
+  const p = db.productos.find(x => x.id === id);
+  if(!p) return;
+  const paso = esDecimal(p.unidad) ? 0.25 : 1;
+  const item = carrito.find(x => x.productoId === id);
+  if(item){
+    if(item.cantidad + paso > p.stock){ toast('Stock insuficiente de ' + p.nombre,'warn'); return; }
+    item.cantidad = r3(item.cantidad + paso);
+  } else {
+    if(p.stock < paso){ toast('Sin stock de ' + p.nombre,'warn'); return; }
+    carrito.push({
+      productoId: p.id, nombre: p.nombre, unidad: p.unidad,
+      precio: p.precio, costo: num(p.costo),
+      cantidad: esDecimal(p.unidad) ? Math.min(1, p.stock) : 1
+    });
+  }
+  renderCarrito();
+}
+
+function renderCarrito(){
+  const box = $('#carritoItems');
+  if(!carrito.length){
+    box.innerHTML = '<p class="empty">Carrito vacío.<br><span class="muted">Toca un producto para agregarlo.</span></p>';
+  } else {
+    box.innerHTML = carrito.map((c, i) => {
+      const sub = r2(c.cantidad * c.precio);
+      const quick = esDecimal(c.unidad)
+        ? `<div class="quick-btns">
+             ${[0.25,0.5,0.75,1].map(v => {
+               const act = Math.abs(c.cantidad - v) < 0.001 ? 'active' : '';
+               return `<button class="quick-btn ${act}" data-q="${i}" data-v="${v}">${v}${c.unidad === 'litro' ? 'L' : 'lb'}</button>`;
+             }).join('')}
+           </div>`
+        : '';
+      return `<div class="cart-item">
+        <div class="ci-top">
+          <div class="ci-info">
+            <strong>${esc(c.nombre)}</strong>
+            <span class="muted">${fmt(c.precio)} / ${esc(c.unidad)}</span>
+          </div>
+          <button class="icon-btn" data-del="${i}" title="Quitar">✕</button>
+        </div>
+        <div class="ci-controls">
+          <input type="number" class="qty" value="${c.cantidad}" min="0"
+                 step="${esDecimal(c.unidad) ? 0.25 : 1}" data-i="${i}">
+          ${quick}
+          <span class="ci-sub">${fmt(sub)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    box.querySelectorAll('.qty').forEach(inp => {
+      inp.onchange = e => cambiarCantidad(+e.target.dataset.i, e.target.value);
+    });
+    box.querySelectorAll('[data-del]').forEach(b => {
+      b.onclick = () => { carrito.splice(+b.dataset.del, 1); renderCarrito(); };
+    });
+    box.querySelectorAll('[data-q]').forEach(b => {
+      b.onclick = () => { cambiarCantidad(+b.dataset.q, b.dataset.v); };
+    });
+  }
+  actualizarCambio();
+}
+
+function cambiarCantidad(i, val){
+  const c = carrito[i];
+  if(!c) return;
+  const p = db.productos.find(x => x.id === c.productoId);
+  let n = num(val);
+  if(n < 0) n = 0;
+  if(!esDecimal(c.unidad)) n = Math.round(n);
+  else n = r3(n);
+  if(p && n > p.stock){ toast('Máximo disponible: ' + fmtCant(p.stock) + ' ' + p.unidad,'warn'); n = p.stock; }
+  c.cantidad = n;
+  renderCarrito();
+}
+
+function totalCarrito(){ return r2(carrito.reduce((s,c) => s + c.cantidad * c.precio, 0)); }
+
+function actualizarCambio(){
+  const total = totalCarrito();
+  const pago = num($('#inputPago').value);
+  const cambio = pago > 0 ? Math.max(0, pago - total) : 0;
+  $('#carritoTotal').textContent = fmt(total);
+  $('#carritoCambio').textContent = fmt(cambio);
+}
+
+function cobrar(){
+  if(!carrito.length){ toast('El carrito está vacío','warn'); return; }
+  for(const c of carrito){
+    if(c.cantidad <= 0){ toast('Cantidad inválida en "' + c.nombre + '"','warn'); return; }
+    const p = db.productos.find(x => x.id === c.productoId);
+    if(!p){ toast('Producto no encontrado: ' + c.nombre,'warn'); return; }
+    if(p.stock < c.cantidad){ toast('Stock insuficiente: ' + c.nombre,'warn'); return; }
+  }
+  const total = totalCarrito();
+  const costo = r2(carrito.reduce((s,c) => s + c.cantidad * c.costo, 0));
+  const metodo = $('#metodoPago').value;
+  const pago = num($('#inputPago').value) || total;
+
+  const venta = {
+    id: uid(),
+    fecha: new Date().toISOString(),
+    items: carrito.map(c => ({...c})),
+    total, costo,
+    metodo, pago,
+    cambio: Math.max(0, pago - total)
+  };
+  carrito.forEach(c => {
+    const p = db.productos.find(x => x.id === c.productoId);
+    if(p) p.stock = r3(p.stock - c.cantidad);
+  });
+  db.ventas.push(venta);
+  guardar();
+  carrito = [];
+  $('#inputPago').value = '';
+  renderPOS();
+  toast('✓ Venta ' + fmt(total),'ok');
+}
+
+$('#btnCobrar').onclick = cobrar;
+$('#btnVaciar').onclick = () => { if(carrito.length && confirm('¿Vaciar el carrito?')){ carrito = []; renderCarrito(); } };
+$('#inputPago').addEventListener('input', actualizarCambio);
+$('#posBusqueda').addEventListener('input', e => { filtroBusqueda = e.target.value; renderPOS(); });
+
+/* =========================================================
+   INVENTARIO
+   ========================================================= */
+function renderInventario(){
+  const q = filtroInv.trim().toLowerCase();
+  const prods = db.productos
+    .filter(p => !q || p.nombre.toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q))
+    .sort((a,b) => a.nombre.localeCompare(b.nombre,'es'));
+  const valorCosto = db.productos.reduce((s,p) => s + p.stock * num(p.costo), 0);
+  const valorVenta = db.productos.reduce((s,p) => s + p.stock * p.precio, 0);
+  const bajos = db.productos.filter(p => p.stock <= (p.stockMinimo ?? 5));
+
+  let html = `<div class="stats">
+    <div class="stat blue"><div class="stat-label">Productos</div><div class="stat-value">${db.productos.length}</div></div>
+    <div class="stat green"><div class="stat-label">Valor a costo</div><div class="stat-value">${fmt(valorCosto)}</div></div>
+    <div class="stat green"><div class="stat-label">Valor a venta</div><div class="stat-value">${fmt(valorVenta)}</div>
+      <div class="stat-sub">Ganancia potencial: ${fmt(valorVenta - valorCosto)}</div></div>
+    <div class="stat ${bajos.length ? 'red' : 'green'}"><div class="stat-label">Stock bajo</div>
+      <div class="stat-value">${bajos.length}</div></div>
+  </div>`;
+
+  if(!prods.length){
+    html += '<div class="card"><p class="empty">Sin productos que mostrar.</p></div>';
+  } else {
+    html += `<div class="card"><div class="table-scroll"><table>
+      <thead><tr>
+        <th>Producto</th><th>Categoría</th><th class="num">Costo</th>
+        <th class="num">Precio</th><th class="num">Margen</th><th class="num">Stock</th><th></th>
+      </tr></thead><tbody>`;
+    prods.forEach(p => {
+      const margen = p.precio > 0 ? ((p.precio - num(p.costo)) / p.precio) * 100 : 0;
+      const min = p.stockMinimo ?? 5;
+      const badge = p.stock <= 0 ? '<span class="badge bad">Agotado</span>'
+        : (p.stock <= min ? '<span class="badge warn">Bajo</span>' : '<span class="badge ok">OK</span>');
+      html += `<tr>
+        <td><strong>${esc(p.nombre)}</strong></td>
+        <td class="muted">${esc(p.categoria || '—')}</td>
+        <td class="num">${fmt(p.costo || 0)}</td>
+        <td class="num"><strong>${fmt(p.precio)}</strong></td>
+        <td class="num">${margen.toFixed(0)}%</td>
+        <td class="num">${fmtCant(p.stock)} ${esc(p.unidad)} ${badge}</td>
+        <td style="text-align:right;white-space:nowrap">
+          <button class="icon-btn" data-edit="${p.id}" title="Editar">✏️</button>
+          <button class="icon-btn" data-del="${p.id}" title="Eliminar">🗑️</button>
+        </td>
+      </tr>`;
+    });
+    html += '</tbody></table></div></div>';
+  }
+  const cont = $('#invContenido');
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => abrirProducto(b.dataset.edit));
+  cont.querySelectorAll('[data-del]').forEach(b => b.onclick = () => eliminarProducto(b.dataset.del));
+
+  const cats = [...new Set(db.productos.map(p => p.categoria).filter(Boolean))].sort();
+  $('#catsList').innerHTML = cats.map(c => `<option value="${esc(c)}">`).join('');
+  renderSugerencias();
+}
+
+function renderSugerencias(){
+  const box = $('#sugerenciasBox');
+  const hace14 = new Date(); hace14.setDate(hace14.getDate() - 14);
+  const ventasRecientes = db.ventas.filter(v => new Date(v.fecha) >= hace14);
+  const vendidos = {};
+  ventasRecientes.forEach(v => v.items.forEach(it => {
+    vendidos[it.productoId] = (vendidos[it.productoId] || 0) + it.cantidad;
+  }));
+  const sugeridos = db.productos
+    .filter(p => p.stock <= (p.stockMinimo ?? 5) && vendidos[p.id] > 0)
+    .map(p => ({ ...p, vendido: vendidos[p.id] }))
+    .sort((a,b) => b.vendido - a.vendido)
+    .slice(0, 8);
+  if(!sugeridos.length){
+    box.innerHTML = '<h3>💡 Sugerencias de reposición</h3><p class="empty">No hay urgencias de reposición.</p>';
+    return;
+  }
+  box.innerHTML = `<h3>💡 Sugerencias de reposición (stock bajo + buena rotación)</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Producto</th><th class="num">Vendido (14d)</th><th class="num">Stock</th><th class="num">Mínimo</th></tr></thead>
+      <tbody>${sugeridos.map(p => `<tr>
+        <td><strong>${esc(p.nombre)}</strong></td>
+        <td class="num">${fmtCant(p.vendido)} ${esc(p.unidad)}</td>
+        <td class="num dif-neg">${fmtCant(p.stock)} ${esc(p.unidad)}</td>
+        <td class="num">${fmtCant(p.stockMinimo ?? 5)}</td>
+      </tr>`).join('')}</tbody></table></div>`;
+}
+
+function abrirProducto(id){
+  const p = id ? db.productos.find(x => x.id === id) : null;
+  $('#modalTitle').textContent = p ? 'Editar producto' : 'Nuevo producto';
+  const unidades = ['lb','litro','pieza','paquete','caja','docena','gramo','onza'];
+  $('#modalBody').innerHTML = `
+    <div class="field"><label>Nombre *</label>
+      <input id="f_nombre" value="${p ? esc(p.nombre) : ''}" placeholder="Ej. Manzana roja"></div>
+    <div class="row2">
+      <div class="field"><label>Categoría</label>
+        <input id="f_cat" list="catsList" value="${p ? esc(p.categoria||'') : ''}" placeholder="Frutas"></div>
+      <div class="field"><label>Unidad de medida</label>
+        <select id="f_unidad">
+          ${unidades.map(u => `<option value="${u}" ${p && p.unidad===u ? 'selected' : (!p && u==='lb' ? 'selected' : '')}>${u}</option>`).join('')}
+        </select></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Costo ($ por unidad)</label>
+        <input id="f_costo" type="number" step="0.01" min="0" value="${p ? (p.costo ?? '') : ''}" placeholder="0.00"></div>
+      <div class="field"><label>Precio de venta ($ por unidad)</label>
+        <input id="f_precio" type="number" step="0.01" min="0" value="${p ? p.precio : ''}" placeholder="0.00"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Stock actual</label>
+        <input id="f_stock" type="number" step="0.01" value="${p ? p.stock : ''}" placeholder="0"></div>
+      <div class="field"><label>Stock mínimo (alerta)</label>
+        <input id="f_min" type="number" step="1" min="0" value="${p ? (p.stockMinimo ?? 5) : 5}"></div>
+    </div>
+    <p class="muted">Si la unidad es <b>lb</b> o <b>litro</b>, en el POS podrás despachar fracciones (0.25, 0.5, 0.75, etc.).</p>`;
+  $('#modalSave').onclick = () => guardarProducto(p ? p.id : null);
+  abrirModal();
+  setTimeout(() => $('#f_nombre').focus(), 60);
+}
+
+function guardarProducto(id){
+  const nombre = $('#f_nombre').value.trim();
+  if(!nombre){ toast('Escribe un nombre','warn'); return; }
+  const precio = num($('#f_precio').value);
+  if(precio <= 0){ toast('El precio debe ser mayor a 0','warn'); return; }
+  const datos = {
+    nombre,
+    categoria: $('#f_cat').value.trim() || 'General',
+    unidad: $('#f_unidad').value,
+    costo: r2(num($('#f_costo').value)),
+    precio: r2(precio),
+    stock: r3(num($('#f_stock').value)),
+    stockMinimo: num($('#f_min').value)
+  };
+  if(id) Object.assign(db.productos.find(x => x.id === id), datos);
+  else db.productos.push(Object.assign({ id: uid() }, datos));
+  guardar();
+  cerrarModal();
+  renderInventario();
+  toast('✓ Producto guardado','ok');
+}
+
+function eliminarProducto(id){
+  const p = db.productos.find(x => x.id === id);
+  if(!p) return;
+  if(!confirm(`¿Eliminar "${p.nombre}"?\n\nLas ventas ya registradas no se modifican.`)) return;
+  db.productos = db.productos.filter(x => x.id !== id);
+  carrito = carrito.filter(c => c.productoId !== id);
+  guardar();
+  renderInventario();
+  toast('Producto eliminado');
+}
+
+$('#btnNuevoProducto').onclick = () => abrirProducto(null);
+$('#invBusqueda').addEventListener('input', e => { filtroInv = e.target.value; renderInventario(); });
+
+/* =========================================================
+   ARQUEO
+   ========================================================= */
+function renderArqueo(){
+  const fecha = $('#arqFecha').value || hoyKey();
+  $('#arqFecha').value = fecha;
+
+  const ventasDia = db.ventas.filter(v => fechaKey(v.fecha) === fecha);
+  const gastosDia = db.gastos.filter(g => g.fecha === fecha);
+  const arqueoGuardado = db.arqueos.find(a => a.fecha === fecha);
+
+  const totVentas = r2(ventasDia.reduce((s,v) => s + v.total, 0));
+  const totCosto  = r2(ventasDia.reduce((s,v) => s + v.costo, 0));
+  const utilBruta = r2(totVentas - totCosto);
+  const totGastos = r2(gastosDia.reduce((s,g) => s + g.monto, 0));
+
+  let mermas = 0, sobrantes = 0;
+  if(arqueoGuardado){
+    arqueoGuardado.items.forEach(it => {
+      const v = r2(it.diferencia * it.costo);
+      if(v < 0) mermas += Math.abs(v); else sobrantes += v;
+    });
+    mermas = r2(mermas); sobrantes = r2(sobrantes);
+  }
+  const utilNeta = r2(utilBruta - mermas + sobrantes - totGastos);
+
+  $('#arqResumen').innerHTML = `
+    <div class="stats">
+      <div class="stat green"><div class="stat-label">Ventas del día</div><div class="stat-value">${fmt(totVentas)}</div>
+        <div class="stat-sub">${ventasDia.length} transacciones</div></div>
+      <div class="stat blue"><div class="stat-label">Costo de lo vendido</div><div class="stat-value">${fmt(totCosto)}</div></div>
+      <div class="stat green"><div class="stat-label">Utilidad bruta</div><div class="stat-value">${fmt(utilBruta)}</div></div>
+      <div class="stat red"><div class="stat-label">Mermas / faltantes</div><div class="stat-value">${fmt(mermas)}</div>
+        <div class="stat-sub">${arqueoGuardado ? 'Arqueo guardado' : 'Sin arqueo guardado'}</div></div>
+      <div class="stat red"><div class="stat-label">Gastos</div><div class="stat-value">${fmt(totGastos)}</div></div>
+      <div class="stat ${utilNeta >= 0 ? 'green' : 'red'}"><div class="stat-label">Utilidad neta del día</div>
+        <div class="stat-value">${fmt(utilNeta)}</div></div>
+    </div>`;
+
+  if(arqueoGuardado){
+    $('#arqResumen').innerHTML += `<div class="highlight-box">
+      <h4>✅ Arqueo guardado el ${fmtFecha(arqueoGuardado.timestamp)}</h4>
+      <p><b>Vendido:</b> ${fmt(totVentas)}</p>
+      <p><b>Mermas:</b> ${fmt(mermas)} · <b>Sobrantes:</b> ${fmt(sobrantes)}</p>
+      <p><b>Utilidad neta:</b> ${fmt(utilNeta)}</p>
+    </div>`;
+  }
+
+  if(!db.productos.length){
+    $('#arqContenido').innerHTML = '<p class="empty">No hay productos en el inventario.</p>';
+    return;
+  }
+
+  if(!arqueoActual || arqueoActual.fecha !== fecha){
+    const guardado = db.arqueos.find(a => a.fecha === fecha);
+    if(guardado){
+      arqueoActual = { fecha, items: guardado.items.map(it => ({...it})) };
+    } else {
+      arqueoActual = {
+        fecha,
+        items: db.productos.map(p => ({
+          productoId: p.id, nombre: p.nombre, unidad: p.unidad,
+          stockSistema: p.stock, stockFisico: '', costo: num(p.costo)
+        }))
+      };
+    }
+  }
+  arqueoActual.items.forEach(it => {
+    const p = db.productos.find(x => x.id === it.productoId);
+    if(p){ it.stockSistema = p.stock; it.costo = num(p.costo); }
+  });
+
+  renderArqueoTabla();
+  renderArqueoHistorial();
+}
+
+function renderArqueoTabla(){
+  const cont = $('#arqContenido');
+  let mermas = 0, sobrantes = 0, conDif = 0;
+  arqueoActual.items.forEach(it => {
+    if(it.stockFisico === '' || it.stockFisico === null) return;
+    const dif = r3(num(it.stockFisico) - it.stockSistema);
+    it.diferencia = dif;
+    const v = r2(dif * it.costo);
+    if(dif < 0) mermas += Math.abs(v); else if(dif > 0) sobrantes += v;
+    if(Math.abs(dif) > 0.0001) conDif++;
+  });
+  mermas = r2(mermas); sobrantes = r2(sobrantes);
+
+  let html = `<div class="arqueo-row arqueo-head">
+    <div>Producto</div><div class="num">Sistema</div><div class="num">Físico</div>
+    <div class="num">Diferencia</div><div class="num">Valor</div></div>`;
+
+  arqueoActual.items.forEach((it, i) => {
+    const fis = it.stockFisico;
+    const dif = (fis === '' || fis === null) ? null : r3(num(fis) - it.stockSistema);
+    const valor = dif === null ? null : r2(dif * it.costo);
+    let difTxt = '—', difClass = 'dif-zero', valorTxt = '—';
+    if(dif !== null){
+      if(Math.abs(dif) < 0.0001){ difTxt = '0'; difClass = 'dif-zero'; }
+      else if(dif > 0){ difTxt = '+' + fmtCant(dif); difClass = 'dif-pos'; }
+      else { difTxt = fmtCant(dif); difClass = 'dif-neg'; }
+      valorTxt = (valor >= 0 ? '+' : '') + fmt(valor);
+    }
+    html += `<div class="arqueo-row">
+      <div><strong>${esc(it.nombre)}</strong><br><small class="muted">${esc(it.unidad)} · costo ${fmt(it.costo)}</small></div>
+      <div class="num">${fmtCant(it.stockSistema)}</div>
+      <div class="num"><input type="number" step="${esDecimal(it.unidad) ? 0.01 : 1}" min="0"
+        value="${fis === '' ? '' : fis}" data-arq="${i}" placeholder="—" style="width:100px;text-align:right"></div>
+      <div class="num ${difClass}">${difTxt}</div>
+      <div class="num ${difClass}">${valorTxt}</div>
+    </div>`;
+  });
+
+  html += `<div class="highlight-box">
+    <h4>Resumen del conteo</h4>
+    <p><b>Productos con diferencia:</b> ${conDif}</p>
+    <p><b>Mermas (faltantes):</b> <span class="dif-neg">${fmt(mermas)}</span></p>
+    <p><b>Sobrantes:</b> <span class="dif-pos">${fmt(sobrantes)}</span></p>
+    <p><b>Impacto neto:</b> <span class="${sobrantes - mermas >= 0 ? 'dif-pos' : 'dif-neg'}">${fmt(sobrantes - mermas)}</span></p>
+  </div>`;
+
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-arq]').forEach(inp => {
+    inp.oninput = e => {
+      const i = +e.target.dataset.arq;
+      arqueoActual.items[i].stockFisico = e.target.value === '' ? '' : r3(num(e.target.value));
+      let m = 0, s = 0, cd = 0;
+      arqueoActual.items.forEach(it => {
+        if(it.stockFisico === '' || it.stockFisico === null) return;
+        const d = r3(num(it.stockFisico) - it.stockSistema);
+        const v = r2(d * it.costo);
+        if(d < 0) m += Math.abs(v); else if(d > 0) s += v;
+        if(Math.abs(d) > 0.0001) cd++;
+      });
+      m = r2(m); s = r2(s);
+      const row = e.target.closest('.arqueo-row');
+      const celdas = row.querySelectorAll('.num');
+      if(celdas.length >= 4){
+        const d = r3(num(e.target.value) - arqueoActual.items[i].stockSistema);
+        const v = r2(d * arqueoActual.items[i].costo);
+        let dt = '0', dc = 'dif-zero', vt = fmt(0);
+        if(Math.abs(d) < 0.0001){ dt = '0'; dc = 'dif-zero'; }
+        else if(d > 0){ dt = '+' + fmtCant(d); dc = 'dif-pos'; }
+        else { dt = fmtCant(d); dc = 'dif-neg'; }
+        vt = (v >= 0 ? '+' : '') + fmt(v);
+        celdas[2].className = 'num ' + dc; celdas[2].textContent = dt;
+        celdas[3].className = 'num ' + dc; celdas[3].textContent = vt;
+      }
+      const hb = cont.querySelector('.highlight-box');
+      if(hb){
+        hb.innerHTML = `<h4>Resumen del conteo</h4>
+          <p><b>Productos con diferencia:</b> ${cd}</p>
+          <p><b>Mermas (faltantes):</b> <span class="dif-neg">${fmt(m)}</span></p>
+          <p><b>Sobrantes:</b> <span class="dif-pos">${fmt(s)}</span></p>
+          <p><b>Impacto neto:</b> <span class="${s - m >= 0 ? 'dif-pos' : 'dif-neg'}">${fmt(s - m)}</span></p>`;
+      }
+    };
+  });
+}
+
+function renderArqueoHistorial(){
+  const box = $('#arqHistorialBox');
+  const lista = db.arqueos.slice().sort((a,b) => b.fecha.localeCompare(a.fecha)).slice(0, 10);
+  if(!lista.length){
+    box.innerHTML = '<h3>Historial de arqueos</h3><p class="empty">Aún no hay arqueos guardados.</p>';
+    return;
+  }
+  box.innerHTML = `<h3>Historial de arqueos (últimos 10)</h3>
+    <div class="table-scroll"><table>
+      <thead><tr><th>Fecha</th><th class="num">Mermas</th><th class="num">Sobrantes</th><th class="num">Ventas</th><th>Guardado</th></tr></thead>
+      <tbody>${lista.map(a => {
+        let m = 0, s = 0;
+        a.items.forEach(it => { const v = r2(it.diferencia * it.costo); if(v<0) m+=Math.abs(v); else s+=v; });
+        return `<tr>
+          <td><strong>${esc(a.fecha)}</strong></td>
+          <td class="num dif-neg">${fmt(m)}</td>
+          <td class="num dif-pos">${fmt(s)}</td>
+          <td class="num">${fmt(a.totVentas || 0)}</td>
+          <td class="muted">${fmtFecha(a.timestamp)}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+}
+
+$('#arqFecha').addEventListener('change', () => { arqueoActual = null; renderArqueo(); });
+$('#btnCargarArqueo').onclick = () => { arqueoActual = null; renderArqueo(); };
+$('#btnRellenarSistema').onclick = () => { arqueoActual.items.forEach(it => { it.stockFisico = it.stockSistema; }); renderArqueoTabla(); };
+$('#btnLimpiarArqueo').onclick = () => {
+  if(!confirm('¿Limpiar todo el conteo?')) return;
+  arqueoActual.items.forEach(it => { it.stockFisico = ''; });
+  renderArqueoTabla();
+};
+$('#btnSoloDiferencias').onclick = () => {
+  arqueoActual.items.forEach(it => {
+    if(it.stockFisico !== '' && it.stockFisico !== null){
+      const dif = r3(num(it.stockFisico) - it.stockSistema);
+      if(Math.abs(dif) < 0.0001) it.stockFisico = '';
+    }
+  });
+  renderArqueoTabla();
+};
+
+$('#btnGuardarArqueo').onclick = () => {
+  const fecha = arqueoActual.fecha;
+  const conDatos = arqueoActual.items.filter(it => it.stockFisico !== '' && it.stockFisico !== null);
+  if(!conDatos.length){ toast('Introduce al menos un conteo físico','warn'); return; }
+
+  const ventasDia = db.ventas.filter(v => fechaKey(v.fecha) === fecha);
+  const gastosDia = db.gastos.filter(g => g.fecha === fecha);
+  const totVentas = r2(ventasDia.reduce((s,v) => s + v.total, 0));
+  const totCosto  = r2(ventasDia.reduce((s,v) => s + v.costo, 0));
+  const utilBruta = r2(totVentas - totCosto);
+  const totGastos = r2(gastosDia.reduce((s,g) => s + g.monto, 0));
+
+  let mermas = 0, sobrantes = 0;
+  arqueoActual.items.forEach(it => {
+    if(it.stockFisico === '' || it.stockFisico === null) return;
+    const dif = r3(num(it.stockFisico) - it.stockSistema);
+    it.diferencia = dif;
+    const v = r2(dif * it.costo);
+    if(v < 0) mermas += Math.abs(v); else sobrantes += v;
+  });
+  mermas = r2(mermas); sobrantes = r2(sobrantes);
+  const utilNeta = r2(utilBruta - mermas + sobrantes - totGastos);
+
+  const msg = `¿Guardar arqueo del ${fecha}?\n\n` +
+    `Ventas: ${fmt(totVentas)}\nMermas: ${fmt(mermas)}\nSobrantes: ${fmt(sobrantes)}\n` +
+    `Utilidad neta del día: ${fmt(utilNeta)}\n\nSe ajustará el stock al conteo físico.`;
+  if(!confirm(msg)) return;
+
+  arqueoActual.items.forEach(it => {
+    if(it.stockFisico === '' || it.stockFisico === null) return;
+    const p = db.productos.find(x => x.id === it.productoId);
+    if(p) p.stock = r3(num(it.stockFisico));
+  });
+
+  const registro = {
+    id: uid(),
+    fecha,
+    timestamp: new Date().toISOString(),
+    items: arqueoActual.items.map(it => ({
+      productoId: it.productoId, nombre: it.nombre, unidad: it.unidad,
+      stockSistema: it.stockSistema, stockFisico: num(it.stockFisico),
+      diferencia: r3(num(it.stockFisico) - it.stockSistema),
+      costo: it.costo
+    })),
+    totVentas, totCosto, utilBruta, totGastos, mermas, sobrantes, utilNeta
+  };
+  const idx = db.arqueos.findIndex(a => a.fecha === fecha);
+  if(idx >= 0) db.arqueos[idx] = registro; else db.arqueos.push(registro);
+
+  guardar();
+  arqueoActual = null;
+  renderArqueo();
+  toast('✓ Arqueo guardado. Utilidad neta: ' + fmt(utilNeta),'ok');
+};
+
+/* =========================================================
+   GASTOS
+   ========================================================= */
+function renderGastos(){
+  const mes = $('#gFiltroMes').value || hoyKey().slice(0,7);
+  const lista = db.gastos
+    .filter(g => (g.fecha || '').slice(0,7) === mes)
+    .sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const totalMes = r2(lista.reduce((s,g) => s + g.monto, 0));
+
+  let html = `<div class="stats">
+    <div class="stat red"><div class="stat-label">Total del mes</div><div class="stat-value">${fmt(totalMes)}</div></div>
+    <div class="stat amber"><div class="stat-label">Movimientos</div><div class="stat-value">${lista.length}</div></div>
+  </div>`;
+
+  if(!lista.length){
+    html += '<p class="empty">No hay gastos en este mes.</p>';
+  } else {
+    html += `<div class="table-scroll"><table>
+      <thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th class="num">Monto</th><th></th></tr></thead>
+      <tbody>${lista.map(g => `<tr>
+        <td>${esc(g.fecha)}</td>
+        <td><strong>${esc(g.concepto)}</strong></td>
+        <td><span class="badge ok">${esc(g.categoria)}</span></td>
+        <td class="num"><strong>${fmt(g.monto)}</strong></td>
+        <td style="text-align:right"><button class="icon-btn" data-delg="${g.id}">🗑️</button></td>
+      </tr>`).join('')}</tbody>
+      <tfoot><tr><td colspan="3" style="text-align:right;font-weight:700">TOTAL</td>
+        <td class="num" style="font-weight:700;font-size:17px">${fmt(totalMes)}</td><td></td></tr></tfoot>
+    </table></div>`;
+  }
+
+  const cont = $('#gastosContenido');
+  cont.innerHTML = html;
+  cont.querySelectorAll('[data-delg]').forEach(b => {
+    b.onclick = () => {
+      if(!confirm('¿Eliminar este gasto?')) return;
+      db.gastos = db.gastos.filter(g => g.id !== b.dataset.delg);
+      guardar(); renderGastos(); toast('Gasto eliminado');
+    };
+  });
+}
+
+$('#btnAddGasto').onclick = () => {
+  const fecha = $('#gFecha').value || hoyKey();
+  const concepto = $('#gConcepto').value.trim();
+  const monto = num($('#gMonto').value);
+  if(!concepto){ toast('Escribe un concepto','warn'); return; }
+  if(monto <= 0){ toast('El monto debe ser mayor a 0','warn'); return; }
+  db.gastos.push({ id: uid(), fecha, concepto, categoria: $('#gCategoria').value, monto: r2(monto) });
+  guardar();
+  $('#gConcepto').value = '';
+  $('#gMonto').value = '';
+  $('#gFiltroMes').value = fecha.slice(0,7);
+  renderGastos();
+  toast('✓ Gasto registrado','ok');
+};
+$('#gFiltroMes').addEventListener('change', renderGastos);
+$('#gConcepto').addEventListener('keydown', e => { if(e.key === 'Enter') $('#btnAddGasto').click(); });
+
+/* =========================================================
+   REPORTES
+   ========================================================= */
+function renderReportes(){
+  const desde = $('#rDesde').value || hoyKey();
+  const hasta = $('#rHasta').value || hoyKey();
+
+  const ventas = db.ventas.filter(v => {
+    const k = fechaKey(v.fecha);
+    return k >= desde && k <= hasta;
+  });
+  const gastos = db.gastos.filter(g => g.fecha >= desde && g.fecha <= hasta);
+  const arqueos = db.arqueos.filter(a => a.fecha >= desde && a.fecha <= hasta);
+
+  const totVentas = r2(ventas.reduce((s,v) => s + v.total, 0));
+  const totCosto  = r2(ventas.reduce((s,v) => s + v.costo, 0));
+  const totGastos = r2(gastos.reduce((s,g) => s + g.monto, 0));
+  const utilBruta = r2(totVentas - totCosto);
+  const mermas    = r2(arqueos.reduce((s,a) => s + a.mermas, 0));
+  const sobrantes = r2(arqueos.reduce((s,a) => s + a.sobrantes, 0));
+  const utilNeta  = r2(utilBruta - mermas + sobrantes - totGastos);
+  const ticket    = ventas.length ? r2(totVentas / ventas.length) : 0;
+  const margen    = totVentas > 0 ? (utilBruta / totVentas) * 100 : 0;
+
+  $('#rResumen').innerHTML = `
+    <div class="stats">
+      <div class="stat green"><div class="stat-label">Ventas</div><div class="stat-value">${fmt(totVentas)}</div>
+        <div class="stat-sub">${ventas.length} transacciones</div></div>
+      <div class="stat blue"><div class="stat-label">Costo mercancía</div><div class="stat-value">${fmt(totCosto)}</div>
+        <div class="stat-sub">Margen: ${margen.toFixed(1)}%</div></div>
+      <div class="stat green"><div class="stat-label">Utilidad bruta</div><div class="stat-value">${fmt(utilBruta)}</div></div>
+      <div class="stat red"><div class="stat-label">Gastos</div><div class="stat-value">${fmt(totGastos)}</div></div>
+      <div class="stat red"><div class="stat-label">Mermas</div><div class="stat-value">${fmt(mermas)}</div>
+        <div class="stat-sub">Sobrantes: ${fmt(sobrantes)}</div></div>
+      <div class="stat ${utilNeta >= 0 ? 'green' : 'red'}"><div class="stat-label">Utilidad neta</div>
+        <div class="stat-value">${fmt(utilNeta)}</div></div>
+      <div class="stat amber"><div class="stat-label">Ticket promedio</div><div class="stat-value">${fmt(ticket)}</div></div>
+    </div>`;
+
+  const dias = [];
+  for(let i=6;i>=0;i--){
+    const d = new Date(); d.setDate(d.getDate()-i);
+    dias.push({ key: fechaKey(d.toISOString()), label: d.toLocaleDateString('es-MX',{weekday:'short'}), total: 0 });
+  }
+  db.ventas.forEach(v => {
+    const k = fechaKey(v.fecha);
+    const d = dias.find(x => x.key === k);
+    if(d) d.total += v.total;
+  });
+  const maxDia = Math.max(...dias.map(d => d.total), 1);
+  $('#rChart').innerHTML = `<div class="chart">${dias.map(d => `
+    <div class="bar-wrap">
+      <span class="bar-val">${d.total ? fmt(d.total) : ''}</span>
+      <div class="bar" style="height:${Math.max(3,(d.total/maxDia)*120)}px"></div>
+      <span class="bar-lbl">${d.label}</span>
+    </div>`).join('')}</div>`;
+
+  const prodMap = {};
+  ventas.forEach(v => v.items.forEach(it => {
+    if(!prodMap[it.nombre]) prodMap[it.nombre] = { cantidad: 0, total: 0, unidad: it.unidad };
+    prodMap[it.nombre].cantidad += it.cantidad;
+    prodMap[it.nombre].total += it.cantidad * it.precio;
+  }));
+  const top = Object.entries(prodMap).sort((a,b) => b[1].total - a[1].total).slice(0,10);
+  $('#rTop').innerHTML = top.length
+    ? `<div class="table-scroll"><table>
+        <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Total</th></tr></thead>
+        <tbody>${top.map(([n,d]) => `<tr>
+          <td>${esc(n)}</td><td class="num">${fmtCant(d.cantidad)} ${esc(d.unidad)}</td>
+          <td class="num"><strong>${fmt(d.total)}</strong></td></tr>`).join('')}</tbody></table></div>`
+    : '<p class="empty">Sin ventas en el periodo.</p>';
+
+  const metMap = {};
+  ventas.forEach(v => { metMap[v.metodo] = (metMap[v.metodo] || 0) + v.total; });
+  const mets = Object.entries(metMap).sort((a,b) => b[1]-a[1]);
+  $('#rMetodos').innerHTML = mets.length
+    ? `<div class="table-scroll"><table>
+        <thead><tr><th>Método</th><th class="num">Total</th><th class="num">%</th></tr></thead>
+        <tbody>${mets.map(([m,t]) => `<tr>
+          <td>${esc(m)}</td><td class="num"><strong>${fmt(t)}</strong></td>
+          <td class="num">${totVentas ? ((t/totVentas)*100).toFixed(1) : 0}%</td>
+        </tr>`).join('')}</tbody></table></div>`
+    : '<p class="empty">Sin ventas en el periodo.</p>';
+
+  const vOrden = ventas.slice().sort((a,b) => b.fecha.localeCompare(a.fecha));
+  $('#rVentas').innerHTML = vOrden.length
+    ? `<div class="table-scroll"><table>
+        <thead><tr><th>Fecha</th><th>Productos</th><th>Pago</th><th class="num">Total</th><th></th></tr></thead>
+        <tbody>${vOrden.map(v => `<tr>
+          <td class="muted" style="white-space:nowrap">${fmtFecha(v.fecha)}</td>
+          <td>${v.items.map(i => `${esc(i.nombre)} ×${fmtCant(i.cantidad)} ${esc(i.unidad)}`).join('<br>')}</td>
+          <td><span class="badge info">${esc(v.metodo)}</span></td>
+          <td class="num"><strong>${fmt(v.total)}</strong></td>
+          <td style="text-align:right;white-space:nowrap">
+            <button class="icon-btn" data-editv="${v.id}" title="Corregir venta">✏️</button>
+            <button class="icon-btn" data-delv="${v.id}" title="Anular venta">🗑️</button>
+          </td>
+        </tr>`).join('')}</tbody></table></div>`
+    : '<p class="empty">Sin ventas en el periodo.</p>';
+
+  $('#rVentas').querySelectorAll('[data-editv]').forEach(b => b.onclick = () => editarVenta(b.dataset.editv));
+  $('#rVentas').querySelectorAll('[data-delv]').forEach(b => b.onclick = () => anularVenta(b.dataset.delv));
+}
+
+function editarVenta(id){
+  const v = db.ventas.find(x => x.id === id);
+  if(!v) return;
+  const items = v.items.map(it => ({...it}));
+
+  function render(){
+    const total = r2(items.reduce((s,it) => s + it.cantidad * it.precio, 0));
+    $('#modalBody').innerHTML = `
+      <p class="muted mb">Venta del ${fmtFecha(v.fecha)}</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Producto</th><th class="num">Cant.</th><th class="num">Precio</th><th class="num">Subtotal</th><th></th></tr></thead>
+        <tbody>${items.map((it, i) => `
+          <tr>
+            <td><strong>${esc(it.nombre)}</strong><br><small class="muted">${esc(it.unidad)}</small></td>
+            <td class="num"><input type="number" step="${esDecimal(it.unidad) ? 0.25 : 1}" min="0"
+              value="${it.cantidad}" data-ei="${i}" style="width:90px;text-align:right"></td>
+            <td class="num">${fmt(it.precio)}</td>
+            <td class="num"><strong>${fmt(it.cantidad * it.precio)}</strong></td>
+            <td style="text-align:right"><button class="icon-btn" data-eidel="${i}">✕</button></td>
+          </tr>`).join('')}</tbody>
+        <tfoot>
+          <tr><td colspan="3" style="text-align:right;font-weight:700">Total</td>
+            <td class="num" style="font-weight:700;font-size:17px">${fmt(total)}</td><td></td></tr>
+        </tfoot>
+      </table></div>
+      <div class="field mt"><label>Nota de corrección (opcional)</label>
+        <input id="editNota" placeholder="Ej. error al marcar cantidad"></div>`;
+    $('#modalBody').querySelectorAll('[data-ei]').forEach(inp => {
+      inp.onchange = e => {
+        const i = +e.target.dataset.ei;
+        items[i].cantidad = esDecimal(items[i].unidad) ? r3(num(e.target.value)) : Math.round(num(e.target.value));
+        render();
+      };
+    });
+    $('#modalBody').querySelectorAll('[data-eidel]').forEach(b => {
+      b.onclick = () => { items.splice(+b.dataset.eidel, 1); render(); };
+    });
+  }
+  render();
+
+  $('#modalTitle').textContent = 'Corregir venta';
+  $('#modalSave').onclick = () => {
+    if(!items.length){ toast('La venta debe tener al menos un producto','warn'); return; }
+    const stockVirtual = {};
+    db.productos.forEach(p => stockVirtual[p.id] = p.stock);
+    v.items.forEach(it => { if(stockVirtual[it.productoId] !== undefined) stockVirtual[it.productoId] += it.cantidad; });
+    for(const it of items){
+      if(it.cantidad <= 0){ toast('Cantidad inválida en ' + it.nombre,'warn'); return; }
+      if(stockVirtual[it.productoId] !== undefined && it.cantidad > stockVirtual[it.productoId] + 0.0001){
+        toast('Stock insuficiente para ' + it.nombre + ' (disp. ' + fmtCant(stockVirtual[it.productoId]) + ')','warn');
+        return;
+      }
+    }
+    v.items.forEach(it => {
+      const p = db.productos.find(x => x.id === it.productoId);
+      if(p) p.stock = r3(p.stock + it.cantidad);
+    });
+    items.forEach(it => {
+      const p = db.productos.find(x => x.id === it.productoId);
+      if(p) p.stock = r3(p.stock - it.cantidad);
+    });
+    const nota = $('#editNota').value.trim();
+    v.items = items;
+    v.total = r2(items.reduce((s,it) => s + it.cantidad * it.precio, 0));
+    v.costo = r2(items.reduce((s,it) => s + it.cantidad * num(it.costo), 0));
+    v.correcciones = v.correcciones || [];
+    v.correcciones.push({ fecha: new Date().toISOString(), nota: nota || 'Corrección' });
+    guardar();
+    cerrarModal();
+    renderReportes();
+    toast('✓ Venta corregida','ok');
+  };
+  abrirModal(true);
+}
+
+function anularVenta(id){
+  const v = db.ventas.find(x => x.id === id);
+  if(!v) return;
+  if(!confirm('¿Anular esta venta?\n\nSe devolverá el stock y se eliminará del historial.')) return;
+  v.items.forEach(it => {
+    const p = db.productos.find(x => x.id === it.productoId);
+    if(p) p.stock = r3(p.stock + it.cantidad);
+  });
+  db.ventas = db.ventas.filter(x => x.id !== id);
+  guardar();
+  renderReportes();
+  toast('Venta anulada y stock devuelto');
+}
+
+['rDesde','rHasta'].forEach(id => $('#'+id).addEventListener('change', renderReportes));
+$('#btnHoy').onclick = () => { $('#rDesde').value = hoyKey(); $('#rHasta').value = hoyKey(); renderReportes(); };
+$('#btnSemana').onclick = () => {
+  const d = new Date(); d.setDate(d.getDate()-6);
+  $('#rDesde').value = fechaKey(d.toISOString()); $('#rHasta').value = hoyKey(); renderReportes();
+};
+$('#btnMes').onclick = () => {
+  $('#rDesde').value = hoyKey().slice(0,8) + '01'; $('#rHasta').value = hoyKey(); renderReportes();
+};
+
+/* =========================================================
+   SEGURIDAD: HASH DE CONTRASEÑA
+   ========================================================= */
+async function sha256(txt){
+  const enc = new TextEncoder();
+  const buf = await crypto.subtle.digest('SHA-256', enc.encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+/* =========================================================
+   CIFRADO AES-GCM PARA SINCRONIZACIÓN
+   ========================================================= */
+async function derivarClave(password, salt){
+  const enc = new TextEncoder();
+  const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name:'PBKDF2', salt, iterations:150000, hash:'SHA-256' },
+    base,
+    { name:'AES-GCM', length:256 },
+    false,
+    ['encrypt','decrypt']
+  );
+}
+function b64encode(bytes){
+  let s = '';
+  const arr = new Uint8Array(bytes);
+  for(let i=0;i<arr.length;i++) s += String.fromCharCode(arr[i]);
+  return btoa(s);
+}
+function b64decode(str){
+  const bin = atob(str);
+  const arr = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+async function cifrar(data, password){
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await derivarClave(password, salt);
+  const ct = await crypto.subtle.encrypt({name:'AES-GCM',iv}, key, enc.encode(JSON.stringify(data)));
+  return { v: 1, salt: b64encode(salt), iv: b64encode(iv), data: b64encode(ct) };
+}
+async function descifrar(payload, password){
+  const salt = b64decode(payload.salt);
+  const iv = b64decode(payload.iv);
+  const ct = b64decode(payload.data);
+  const key = await derivarClave(password, salt);
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM',iv}, key, ct);
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+
+/* =========================================================
+   SINCRONIZACIÓN VÍA JSONBLOB.COM
+   ========================================================= */
+const SYNC_API = 'https://jsonblob.com/api/jsonBlob';
+
+async function crearBlob(payload){
+  const res = await fetch(SYNC_API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok) throw new Error('No se pudo crear el blob (' + res.status + ')');
+  let id = res.headers.get('X-jsonblob');
+  if(!id){
+    const loc = res.headers.get('Location');
+    if(loc) id = loc.split('/').pop();
+  }
+  if(!id){
+    try { const j = await res.json(); id = j.id || j.blobId; } catch(_){}
+  }
+  if(!id) throw new Error('No se recibió identificador del blob');
+  return id;
+}
+
+async function leerBlob(id){
+  const res = await fetch(SYNC_API + '/' + id, { headers: { 'Accept': 'application/json' } });
+  if(!res.ok) throw new Error('No se pudo leer (' + res.status + ')');
+  return res.json();
+}
+
+async function actualizarBlob(id, payload){
+  const res = await fetch(SYNC_API + '/' + id, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok) throw new Error('No se pudo actualizar (' + res.status + ')');
+}
+
+function datosParaSync(){
+  return {
+    productos: db.productos,
+    ventas: db.ventas,
+    gastos: db.gastos,
+    arqueos: db.arqueos,
+    meta: { nombre: db.config.nombre, moneda: db.config.moneda, updated: new Date().toISOString() }
+  };
+}
+
+async function pushSync(silencioso){
+  if(syncEnCurso) return;
+  if(!db.config.sync.enabled || !db.config.sync.blobId) return;
+  if(!sessionPassword){ if(!silencioso) toast('Falta la clave de administrador','warn'); return; }
+  syncEnCurso = true;
+  try {
+    const enc = await cifrar(datosParaSync(), sessionPassword);
+    await actualizarBlob(db.config.sync.blobId, enc);
+    db.config.sync.lastSync = new Date().toISOString();
+    localStorage.setItem(LS_KEY, JSON.stringify(db));
+    if(!silencioso) toast('✓ Datos subidos','ok');
+    renderSyncPanel();
+  } catch(e){
+    console.error(e);
+    if(!silencioso) toast('Error al subir: ' + e.message,'warn');
+  } finally {
+    syncEnCurso = false;
+  }
+}
+
+async function pullSync(silencioso){
+  if(syncEnCurso) return;
+  if(!db.config.sync.enabled || !db.config.sync.blobId) return;
+  if(!sessionPassword){ if(!silencioso) toast('Falta la clave de administrador','warn'); return; }
+  syncEnCurso = true;
+  try {
+    const payload = await leerBlob(db.config.sync.blobId);
+    if(!payload || !payload.data){ if(!silencioso) toast('No hay datos en la nube','warn'); return; }
+    const remoto = await descifrar(payload, sessionPassword);
+    const localUpd = db.config.sync.remoteUpdated || '';
+    const remUpd = (remoto.meta && remoto.meta.updated) || '';
+    if(remUpd && remUpd !== localUpd){
+      if(!silencioso){
+        if(!confirm(`Datos remotos del ${new Date(remUpd).toLocaleString('es-MX')}.\n¿Reemplazar los locales por los remotos?`)) return;
+      }
+      db.productos = remoto.productos || [];
+      db.ventas    = remoto.ventas || [];
+      db.gastos    = remoto.gastos || [];
+      db.arqueos   = remoto.arqueos || [];
+      if(remoto.meta?.nombre) db.config.nombre = remoto.meta.nombre;
+      if(remoto.meta?.moneda) db.config.moneda = remoto.meta.moneda;
+      db.config.sync.remoteUpdated = remUpd;
+      db.config.sync.lastSync = new Date().toISOString();
+      localStorage.setItem(LS_KEY, JSON.stringify(db));
+      aplicarConfig();
+      if($('#tab-pos').classList.contains('active')) renderPOS();
+      if($('#tab-inventario').classList.contains('active')) renderInventario();
+      if($('#tab-arqueo').classList.contains('active')) { arqueoActual = null; renderArqueo(); }
+      if($('#tab-gastos').classList.contains('active')) renderGastos();
+      if($('#tab-reportes').classList.contains('active')) renderReportes();
+      if(!silencioso) toast('✓ Datos descargados y aplicados','ok');
+    } else {
+      if(!silencioso) toast('Ya tienes la versión más reciente','ok');
+    }
+    renderSyncPanel();
+  } catch(e){
+    console.error(e);
+    if(!silencioso) toast('Error al descargar: ' + (e.message.includes('decrypt') ? 'clave incorrecta o datos corruptos' : e.message),'warn');
+  } finally {
+    syncEnCurso = false;
+  }
+}
+
+function programarAutoSync(){
+  if(!db.config.sync.enabled || !db.config.sync.autoSync || !sessionPassword) return;
+  clearTimeout(autoSyncTimer);
+  autoSyncTimer = setTimeout(() => { pushSync(true); }, 5000);
+}
+
+/* =========================================================
+   PANEL DE SINCRONIZACIÓN
+   ========================================================= */
+function renderSyncPanel(){
+  const box = $('#syncPanel');
+  const s = db.config.sync;
+  const tieneClave = !!db.config.adminHash;
+
+  if(!tieneClave){
+    box.innerHTML = `
+      <div class="sync-box">
+        <p class="muted mb"><b>Primer paso:</b> crea tu clave de administrador. Con ella se protege el acceso a la sincronización y se cifran los datos.</p>
+        <div class="field"><label>Nueva clave (mínimo 6 caracteres)</label>
+          <input id="s_newPw" type="password" placeholder="••••••"></div>
+        <div class="field"><label>Repite la clave</label>
+          <input id="s_newPw2" type="password" placeholder="••••••"></div>
+        <button class="btn btn-primary" id="s_crearPw">Crear clave</button>
+      </div>`;
+    $('#s_crearPw').onclick = async () => {
+      const p1 = $('#s_newPw').value;
+      const p2 = $('#s_newPw2').value;
+      if(p1.length < 6){ toast('La clave debe tener al menos 6 caracteres','warn'); return; }
+      if(p1 !== p2){ toast('Las claves no coinciden','warn'); return; }
+      db.config.adminHash = await sha256(p1);
+      sessionPassword = p1;
+      sessionStorage.setItem(SESSION_PW, p1);
+      guardar();
+      renderSyncPanel();
+      toast('✓ Clave de administrador creada','ok');
+    };
+    return;
+  }
+
+  if(!sessionPassword){
+    box.innerHTML = `
+      <div class="sync-box locked">
+        <p class="mb">🔒 <b>Panel bloqueado.</b> Introduce tu clave de administrador para gestionar la sincronización.</p>
+        <div class="field"><label>Clave</label>
+          <input id="s_pw" type="password" placeholder="••••••"></div>
+        <button class="btn btn-primary" id="s_unlock">Desbloquear</button>
+      </div>`;
+    $('#s_unlock').onclick = async () => {
+      const p = $('#s_pw').value;
+      if(await sha256(p) === db.config.adminHash){
+        sessionPassword = p;
+        sessionStorage.setItem(SESSION_PW, p);
+        renderSyncPanel();
+        toast('✓ Acceso concedido','ok');
+      } else {
+        toast('Clave incorrecta','warn');
+      }
+    };
+    return;
+  }
+
+  const estado = s.enabled ? `<span class="sync-status on">● Activo</span>` : `<span class="sync-status off">● Desactivado</span>`;
+  const lastSync = s.lastSync ? fmtFecha(s.lastSync) : 'Nunca';
+
+  let html = `
+    <div class="sync-box">
+      <div class="flex-between" style="margin-bottom:6px">
+        <span class="muted">Estado: ${estado}</span>
+        <button class="btn btn-ghost" id="s_lock" style="padding:8px 14px;font-size:14.5px">🔒 Bloquear</button>
+      </div>
+      <p class="muted">Última sincronización: ${lastSync}</p>
+    </div>`;
+
+  if(!s.enabled){
+    html += `
+      <div class="sync-box">
+        <p class="mb">Elige cómo quieres configurar la sincronización:</p>
+        <div class="gap" style="margin-bottom:10px">
+          <button class="btn btn-primary" id="s_crear">📤 Crear nuevo grupo de sincronización</button>
+          <button class="btn btn-info" id="s_unir">📥 Unirme a uno existente</button>
+        </div>
+        <p class="muted">Al crear un grupo se genera un <b>código de sincronización</b> que compartirás con los otros administradores (por ejemplo por WhatsApp).</p>
+      </div>`;
+  } else {
+    html += `
+      <div class="sync-box">
+        <p class="muted mb">Código de sincronización (compártelo solo con administradores de confianza):</p>
+        <code class="sync-code">${esc(s.blobId)}</code>
+        <div class="gap">
+          <button class="btn btn-ghost" id="s_copiar">📋 Copiar código</button>
+          <button class="btn btn-primary" id="s_push">⬆️ Subir ahora</button>
+          <button class="btn btn-info" id="s_pull">⬇️ Descargar ahora</button>
+          <button class="btn btn-ghost" id="s_sync">🔄 Sincronizar (subir + bajar)</button>
+        </div>
+        <div class="field mt" style="display:flex;align-items:center;gap:10px">
+          <input type="checkbox" id="s_auto" ${s.autoSync ? 'checked' : ''} style="width:auto">
+          <label for="s_auto" style="margin:0;cursor:pointer">Sincronización automática (al guardar cambios)</label>
+        </div>
+        <div class="gap mt">
+          <button class="btn btn-ghost" id="s_salir">🚪 Salir del grupo</button>
+        </div>
+      </div>`;
+  }
+
+  box.innerHTML = html;
+
+  const lockBtn = $('#s_lock');
+  if(lockBtn) lockBtn.onclick = () => {
+    sessionPassword = '';
+    sessionStorage.removeItem(SESSION_PW);
+    renderSyncPanel();
+    toast('Panel bloqueado');
+  };
+
+  const crearBtn = $('#s_crear');
+  if(crearBtn) crearBtn.onclick = async () => {
+    if(!confirm('Se creará un nuevo grupo de sincronización con los datos actuales. ¿Continuar?')) return;
+    try {
+      const enc = await cifrar(datosParaSync(), sessionPassword);
+      const id = await crearBlob(enc);
+      db.config.sync.enabled = true;
+      db.config.sync.blobId = id;
+      db.config.sync.lastSync = new Date().toISOString();
+      guardar();
+      renderSyncPanel();
+      toast('✓ Grupo creado. Copia el código para compartirlo.','ok');
+    } catch(e){
+      console.error(e);
+      toast('Error al crear el grupo: ' + e.message,'warn');
+    }
+  };
+
+  const unirBtn = $('#s_unir');
+  if(unirBtn) unirBtn.onclick = () => {
+    $('#modalTitle').textContent = 'Unirme a un grupo existente';
+    $('#modalBody').innerHTML = `
+      <p class="muted mb">Introduce el código que te compartió el otro administrador.</p>
+      <div class="field"><label>Código de sincronización</label>
+        <input id="f_blob" placeholder="Ej. 1234567890123456789"></div>
+      <p class="muted">Se descargarán los datos y reemplazarán a los locales. La clave de administrador debe ser la misma.</p>`;
+    $('#modalSave').onclick = async () => {
+      const id = $('#f_blob').value.trim();
+      if(!id){ toast('Introduce el código','warn'); return; }
+      try {
+        const payload = await leerBlob(id);
+        const remoto = await descifrar(payload, sessionPassword);
+        if(!confirm('¿Reemplazar los datos locales por los del grupo?')) return;
+        db.productos = remoto.productos || [];
+        db.ventas    = remoto.ventas || [];
+        db.gastos    = remoto.gastos || [];
+        db.arqueos   = remoto.arqueos || [];
+        if(remoto.meta?.nombre) db.config.nombre = remoto.meta.nombre;
+        if(remoto.meta?.moneda) db.config.moneda = remoto.meta.moneda;
+        db.config.sync.enabled = true;
+        db.config.sync.blobId = id;
+        db.config.sync.lastSync = new Date().toISOString();
+        db.config.sync.remoteUpdated = remoto.meta?.updated || '';
+        guardar();
+        aplicarConfig();
+        cerrarModal();
+        carrito = []; arqueoActual = null;
+        renderSyncPanel();
+        switchTab('pos');
+        toast('✓ Unido al grupo correctamente','ok');
+      } catch(e){
+        console.error(e);
+        toast('No se pudo unir. Verifica el código y la clave.','warn');
+      }
+    };
+    abrirModal();
+  };
+
+  const copyBtn = $('#s_copiar');
+  if(copyBtn) copyBtn.onclick = async () => {
+    try { await navigator.clipboard.writeText(s.blobId); toast('Código copiado','ok'); }
+    catch(_) { toast('Copia manualmente el código','warn'); }
+  };
+  const pushBtn = $('#s_push'); if(pushBtn) pushBtn.onclick = () => pushSync(false);
+  const pullBtn = $('#s_pull'); if(pullBtn) pullBtn.onclick = () => pullSync(false);
+  const syncBtn = $('#s_sync');
+  if(syncBtn) syncBtn.onclick = async () => { await pushSync(true); await pullSync(false); };
+
+  const autoChk = $('#s_auto');
+  if(autoChk) autoChk.onchange = e => {
+    db.config.sync.autoSync = e.target.checked;
+    guardar();
+    toast(e.target.checked ? 'Sincronización automática activada' : 'Sincronización automática desactivada');
+  };
+
+  const salirBtn = $('#s_salir');
+  if(salirBtn) salirBtn.onclick = () => {
+    if(!confirm('¿Salir del grupo de sincronización?\n\nLos datos locales se conservan, pero dejarás de sincronizar.')) return;
+    db.config.sync.enabled = false;
+    db.config.sync.blobId = '';
+    db.config.sync.remoteUpdated = '';
+    guardar();
+    renderSyncPanel();
+    toast('Has salido del grupo');
+  };
+}
+
+/* =========================================================
+   AJUSTES GENERALES
+   ========================================================= */
+function renderAjustes(){
+  $('#ajNombre').value = db.config.nombre;
+  $('#ajMoneda').value = db.config.moneda;
+  renderSyncPanel();
+}
+
+function aplicarConfig(){
+  document.title = 'MimercaDo — Contabilidad';
+}
+
+$('#btnGuardarConfig').onclick = () => {
+  db.config.nombre = $('#ajNombre').value.trim() || 'MimercaDo';
+  db.config.moneda = $('#ajMoneda').value.trim() || '$';
+  guardar();
+  toast('✓ Configuración guardada','ok');
+};
+
+$('#btnExportJSON').onclick = () => {
+  const blob = new Blob([JSON.stringify(db,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'mimercado-respaldo-' + hoyKey() + '.json';
+  a.click(); URL.revokeObjectURL(url);
+  toast('Respaldo descargado','ok');
+};
+
+$('#fileImport').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const data = JSON.parse(r.result);
+      if(!Array.isArray(data.productos) || !Array.isArray(data.ventas)) throw new Error('formato');
+      if(!confirm('Esto reemplazará todos los datos actuales. ¿Continuar?')) return;
+      const syncCfg = db.config.sync;
+      const adminHash = db.config.adminHash;
+      db.productos = data.productos || [];
+      db.ventas    = data.ventas || [];
+      db.gastos    = data.gastos || [];
+      db.arqueos   = data.arqueos || [];
+      db.config = Object.assign({nombre:'MimercaDo',moneda:'$'}, data.config || {});
+      db.config.sync = syncCfg;
+      db.config.adminHash = adminHash;
+      guardar(); aplicarConfig(); carrito = []; arqueoActual = null;
+      switchTab('pos');
+      toast('✓ Datos importados','ok');
+    } catch(err){ toast('Archivo inválido','warn'); }
+  };
+  r.readAsText(f);
+  e.target.value = '';
+});
+
+$('#btnExportCSV').onclick = () => {
+  if(!db.ventas.length){ toast('No hay ventas para exportar','warn'); return; }
+  const rows = [['Fecha','Producto','Cantidad','Unidad','Precio','Subtotal','Metodo','Total venta']];
+  db.ventas.forEach(v => {
+    v.items.forEach(it => {
+      rows.push([fmtFecha(v.fecha), it.nombre, it.cantidad, it.unidad,
+        it.precio.toFixed(2), (it.cantidad*it.precio).toFixed(2), v.metodo, v.total.toFixed(2)]);
+    });
+  });
+  const csv = '\ufeff' + rows.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'mimercado-ventas-' + hoyKey() + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+  toast('CSV descargado','ok');
+};
+
+$('#btnBorrar').onclick = () => {
+  if(!confirm('⚠️ Se borrarán TODOS los productos, ventas, gastos y arqueos.\n\n¿Estás seguro?')) return;
+  if(!confirm('Esta acción es irreversible. ¿Confirmas?')) return;
+  const cfg = db.config;
+  db = { productos:[], ventas:[], gastos:[], arqueos:[], config: cfg };
+  carrito = []; arqueoActual = null;
+  guardar(); switchTab('pos');
+  toast('Datos eliminados');
+};
+
+$('#btnDemo').onclick = () => {
+  if(!confirm('Se agregarán productos de ejemplo a tu inventario. ¿Continuar?')) return;
+  const demo = [
+    ['Manzana roja','Frutas','lb',40,65,15,5],
+    ['Plátano','Frutas','lb',25,45,20,5],
+    ['Naranja','Frutas','lb',30,55,18,5],
+    ['Tomate','Verduras','lb',35,60,12,5],
+    ['Papa','Verduras','lb',30,55,25,8],
+    ['Cebolla','Verduras','lb',28,50,18,5],
+    ['Zanahoria','Verduras','lb',25,48,14,5],
+    ['Pechuga de pollo','Carnes','lb',180,240,8,3],
+    ['Carne molida','Carnes','lb',220,300,6,3],
+    ['Leche entera 1L','Lácteos','litro',40,55,24,6],
+    ['Queso fresco 500g','Lácteos','pieza',95,135,10,4],
+    ['Huevo 12 pz','Abarrotes','paquete',70,95,15,5],
+    ['Pan blanco','Abarrotes','pieza',45,65,10,4],
+    ['Arroz 1kg','Abarrotes','pieza',42,58,20,5],
+    ['Frijol 1kg','Abarrotes','pieza',50,72,15,5],
+    ['Aceite 1L','Abarrotes','litro',68,95,12,4],
+    ['Refresco 2L','Bebidas','pieza',52,80,18,6],
+    ['Agua 1.5L','Bebidas','pieza',22,40,30,10],
+    ['Jugo de naranja 1L','Bebidas','litro',42,68,12,4]
+  ];
+  let nuevos = 0;
+  demo.forEach(d => {
+    if(db.productos.some(p => p.nombre.toLowerCase() === d[0].toLowerCase())) return;
+    db.productos.push({
+      id: uid(), nombre: d[0], categoria: d[1], unidad: d[2],
+      costo: d[3], precio: d[4], stock: d[5], stockMinimo: d[6]
+    });
+    nuevos++;
+  });
+  guardar();
+  renderInventario();
+  toast(nuevos ? `✓ ${nuevos} productos agregados` : 'Ya existían todos', nuevos ? 'ok' : '');
+};
+
+/* =========================================================
+   INICIALIZACIÓN
+   ========================================================= */
+function init(){
+  cargar();
+  aplicarConfig();
+
+  // Recuperar la clave de la sesión si existe (sin verificación async)
+  const pw = sessionStorage.getItem(SESSION_PW);
+  if(pw) sessionPassword = pw;
+
+  $$('.tab').forEach(b => b.onclick = () => switchTab(b.dataset.tab));
+
+  const hoy = hoyKey();
+  $('#gFecha').value = hoy;
+  $('#gFiltroMes').value = hoy.slice(0,7);
+  $('#rDesde').value = hoy.slice(0,8) + '01';
+  $('#rHasta').value = hoy;
+  $('#arqFecha').value = hoy;
+
+  renderPOS();
+
+  // Sincronización automática periódica cada 60s si está activa
+  setInterval(() => {
+    if(db.config.sync.enabled && db.config.sync.autoSync && sessionPassword){
+      pullSync(true);
+    }
+  }, 60000);
+
+  // Registrar el Service Worker para uso offline
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () =>
+      navigator.serviceWorker.register('sw.js').catch(console.error));
+  }
+}
+
+init();
+</script>
+</body>
+</html>
